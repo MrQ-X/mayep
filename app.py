@@ -1,5 +1,6 @@
 import streamlit as st
 import os, fitz, requests, re, numpy as np, easyocr
+import json
 
 # --- CẤU HÌNH GIAO DIỆN ---
 st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", layout="wide")
@@ -21,28 +22,38 @@ with st.sidebar:
     temp = st.slider("Độ sáng tạo", 0.0, 1.0, 0.2)
 
 # --- LOGIC XỬ LÝ AI ---
+import json # Nhớ thêm dòng này ở đầu file app.py
+
 def summarize_page(text, page_num, api_key, subject, max_tokens, temperature):
     url = "https://api.deepseek.com/chat/completions"
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    
+    # Ép kiểu header sang chuỗi sạch
+    headers = {
+        "Authorization": f"Bearer {api_key}".strip(), 
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    
     payload = {
         "model": "deepseek-chat",
         "messages": [
-            {"role": "system", "content": f"Bạn là chuyên gia phân tích bài giảng môn {subject}. Hãy trích xuất toàn bộ kiến thức quan trọng nhất."},
+            {"role": "system", "content": f"Bạn là chuyên gia phân tích bài giảng môn {subject}. Hãy trích xuất toàn bộ kiến thức quan trọng nhất bằng tiếng Việt."},
             {"role": "user", "content": f"NỘI DUNG SLIDE {page_num}:\n{text}"}
         ],
         "temperature": temperature,
         "max_tokens": max_tokens
     }
+    
     try:
-        res = requests.post(url, json=payload, headers=headers, timeout=120)
-        res_json = res.json()
+        # CHỖ QUAN TRỌNG: Mã hóa payload sang bytes dùng utf-8 để tránh lỗi latin-1
+        binary_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+        
+        res = requests.post(url, data=binary_data, headers=headers, timeout=120)
         
         if res.status_code == 200:
-            return res_json['choices'][0]['message']['content']
+            return res.json()['choices'][0]['message']['content']
         else:
-            # Hiện lỗi cụ thể từ DeepSeek (ví dụ: Insufficient Balance)
-            error_msg = res_json.get('error', {}).get('message', 'Lỗi không xác định')
-            return f"⚠️ Lỗi từ AI (Code {res.status_code}): {error_msg}"
+            return f"⚠️ Lỗi từ AI ({res.status_code}): {res.text}"
+            
     except Exception as e:
         return f"⚠️ Lỗi hệ thống: {str(e)}"
 
