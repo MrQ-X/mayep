@@ -22,21 +22,21 @@ with st.sidebar:
     temp = st.slider("Độ sáng tạo", 0.0, 1.0, 0.2)
 
 # --- LOGIC XỬ LÝ AI ---
-import json # Nhớ thêm dòng này ở đầu file app.py
 
 def summarize_page(text, page_num, api_key, subject, max_tokens, temperature):
-    url = "https://api.deepseek.com/chat/completions"
+    # Làm sạch Key (loại bỏ dấu cách thừa nếu có)
+    clean_key = str(api_key).strip()
     
-    # Ép kiểu header sang chuỗi sạch
+    url = "https://api.deepseek.com/chat/completions"
     headers = {
-        "Authorization": f"Bearer {api_key}".strip(), 
+        "Authorization": f"Bearer {clean_key}", # Không dùng .strip() ở đây nữa vì đã làm ở trên
         "Content-Type": "application/json; charset=utf-8"
     }
     
     payload = {
         "model": "deepseek-chat",
         "messages": [
-            {"role": "system", "content": f"Bạn là chuyên gia phân tích bài giảng môn {subject}. Hãy trích xuất toàn bộ kiến thức quan trọng nhất bằng tiếng Việt."},
+            {"role": "system", "content": f"Bạn là AI chuyên gia môn {subject}. Phân tích slide."},
             {"role": "user", "content": f"NỘI DUNG SLIDE {page_num}:\n{text}"}
         ],
         "temperature": temperature,
@@ -44,19 +44,16 @@ def summarize_page(text, page_num, api_key, subject, max_tokens, temperature):
     }
     
     try:
-        # CHỖ QUAN TRỌNG: Mã hóa payload sang bytes dùng utf-8 để tránh lỗi latin-1
         binary_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        
         res = requests.post(url, data=binary_data, headers=headers, timeout=120)
         
         if res.status_code == 200:
             return res.json()['choices'][0]['message']['content']
         else:
+            # Hiện thông báo lỗi rõ ràng hơn để bạn biết chính xác là Key nào đang bị lỗi
             return f"⚠️ Lỗi từ AI ({res.status_code}): {res.text}"
-            
     except Exception as e:
         return f"⚠️ Lỗi hệ thống: {str(e)}"
-
 # --- GIAO DIỆN CHÍNH ---
 uploaded_file = st.file_uploader("Chọn file PDF", type=["pdf"])
 
