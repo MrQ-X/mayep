@@ -35,9 +35,16 @@ def summarize_page(text, page_num, api_key, subject, max_tokens, temperature):
     }
     try:
         res = requests.post(url, json=payload, headers=headers, timeout=120)
-        return res.json()['choices'][0]['message']['content']
-    except:
-        return "⚠️ Lỗi kết nối với trí tuệ nhân tạo."
+        res_json = res.json()
+        
+        if res.status_code == 200:
+            return res_json['choices'][0]['message']['content']
+        else:
+            # Hiện lỗi cụ thể từ DeepSeek (ví dụ: Insufficient Balance)
+            error_msg = res_json.get('error', {}).get('message', 'Lỗi không xác định')
+            return f"⚠️ Lỗi từ AI (Code {res.status_code}): {error_msg}"
+    except Exception as e:
+        return f"⚠️ Lỗi hệ thống: {str(e)}"
 
 # --- GIAO DIỆN CHÍNH ---
 uploaded_file = st.file_uploader("Chọn file PDF", type=["pdf"])
