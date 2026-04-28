@@ -3,3 +3,4 @@ pymupdf
 requests
 easyocr
 numpy
+tqdm
