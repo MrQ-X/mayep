@@ -4,3 +4,4 @@ requests
 easyocr
 numpy
 tqdm
+opencv-python-headless
