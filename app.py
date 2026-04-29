@@ -22,7 +22,6 @@ with st.sidebar:
     )
 
     # Widget cấu hình sử dụng Key để tránh lỗi Duplicate
-    selected_subject = st.selectbox(L["subject_label"], list(SUBJECT_PROMPTS.keys()), key="subject_sel")
     max_t = st.slider(L["detail_label"], 1000, 4000, 3000, key="max_t_slider")
     temp = st.slider(L["creative_label"], 0.0, 1.0, 0.2, key="temp_slider")
     
