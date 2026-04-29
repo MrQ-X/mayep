@@ -4,7 +4,7 @@ from language import LANGUAGES
 from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 
 # --- 1. CẤU HÌNH GIAO DIỆN ---
-st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Máy Ép Kiến Thức V1.36", page_icon="🧠", layout="wide")
 
 # --- 2. SIDEBAR & ĐA NGÔN NGỮ ---
 with st.sidebar:
