@@ -8,25 +8,31 @@ st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", l
 
 # --- 2. SIDEBAR & ĐA NGÔN NGỮ ---
 with st.sidebar:
-    lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"])
-    L = LANGUAGES[lang_choice] # Sau dòng này L đã có dữ liệu
-
-    # Bây giờ gọi dòng này mới không bị lỗi
-    translated_subjects = L["subject_list"] 
+    # 1. Chọn ngôn ngữ
+    lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"], key="lang_picker")
+    L = LANGUAGES[lang_choice]
     
-selected_subject_key = st.selectbox(
+    st.header(L["header_config"])
+    
+    # 2. Nhập API Key
+    if "DEEPSEEK_API_KEY" in st.secrets:
+        api_key = st.secrets["DEEPSEEK_API_KEY"]
+        st.success("✅ Connected via Secrets")
+    else:
+        api_key = st.text_input(L["api_label"], type="password", key="api_input_key")
+
+    # 3. Chọn chuyên ngành (Đã dịch)
+    translated_subjects = L["subject_list"]
+    selected_subject_key = st.selectbox(
         L["subject_label"], 
         options=list(translated_subjects.keys()), 
         format_func=lambda x: translated_subjects[x], 
-        key="unique_subject_selector_v6"  # Đổi từ subject_sel sang cái này
+        key="subject_selector_unique"
     )
-
-    # Widget cấu hình sử dụng Key để tránh lỗi Duplicate
+    
+    # 4. Các Slider (Đảm bảo các dòng này thẳng hàng với dòng translated_subjects ở trên)
     max_t = st.slider(L["detail_label"], 1000, 4000, 3000, key="max_t_slider")
     temp = st.slider(L["creative_label"], 0.0, 1.0, 0.2, key="temp_slider")
-    
-# 1. Lấy danh sách tên chuyên ngành đã được dịch
-translated_subjects = L["subject_list"] 
     
 
 # --- 3. TIÊU ĐỀ CHÍNH ---
