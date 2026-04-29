@@ -1,9 +1,23 @@
 import streamlit as st
 import os, fitz, requests, json, numpy as np, easyocr
+from language import LANGUAGES
 from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 
 # --- CẤU HÌNH GIAO DIỆN ---
 st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", layout="wide")
+
+with st.sidebar:
+    lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"])
+    L = LANGUAGES[lang_choice] # Gán bộ từ điển tương ứng vào biến L
+
+# 2. Sử dụng biến L để thay thế các dòng chữ cứng
+st.title(L["title"])
+
+with st.sidebar:
+    st.header(L["header_config"])
+    api_key = st.text_input(L["api_label"], type="password")
+    # Tương tự cho các phần khác...
+    max_t = st.slider(L["detail_label"], 1000, 4000, 3000)
 
 # --- DANH SÁCH CHUYÊN NGÀNH & PROMPT CHUYÊN SÂU ---
 
@@ -89,6 +103,14 @@ def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature
         return f"☣️ LỖI HỆ THỐNG: {str(e)}", 0
 
 # --- XỬ LÝ FILE ---
+uploaded_file = st.file_uploader(L["upload_label"], type=["pdf"])
+
+if st.button(L["btn_start"]):
+    if not api_key:
+        st.error(L["error_api"])
+    # ... logic xử lý ...
+    status_text.text(f"{L['status_processing']} {i+1}/{total_pages}...")
+    
 uploaded_file = st.file_uploader("Kéo thả PDF bài giảng", type=["pdf"])
 
 if uploaded_file is not None:
