@@ -41,37 +41,9 @@ with st.sidebar:
 
 # --- LOGIC GỌI AI ---
 def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature):
-    url = "https://api.deepseek.com/chat/completions"
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json; charset=utf-8"}
-    
-    # Lấy Prompt cụ thể cho chuyên ngành đã chọn
-    specific_prompt = SUBJECTS[subject_key]
-    
-    system_instruction = f"""
-    {specific_prompt}
-    QUY TẮC BẮT BUỘC:
-    1. Liệt kê đầy đủ định nghĩa và thuật ngữ chuyên môn.
-    2. Nếu có ví dụ, hãy phân tích từng bước một cách tường minh.
-    3. Trình bày bằng Markdown sạch sẽ, sử dụng Bullet points và Bolding để dễ đọc.
-    4. Ngôn ngữ: Tiếng Việt.
-    """
-    
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": f"NỘI DUNG SLIDE {page_num}:\n{text}"}
-        ],
-        "temperature": temperature,
-        "max_tokens": max_tokens
-    }
-    
-    try:
-        binary_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        res = requests.post(url, data=binary_data, headers=headers, timeout=120)
-        return res.json()['choices'][0]['message']['content']
-    except:
-        return "⚠️ Lỗi kết nối AI hoặc hết Token."
+    # Hệ thống vẫn sẽ hiểu và lấy dữ liệu từ file calculator.py
+    specific_instruction = SUBJECT_PROMPTS.get(subject_key, SUBJECT_PROMPTS["Vạn năng (Tổng hợp)"])
+    full_system_prompt = f"{SYSTEM_CORE}\n\n{specific_instruction}"
 
 # --- XỬ LÝ FILE ---
 uploaded_file = st.file_uploader("Kéo thả PDF bài giảng", type=["pdf"])
