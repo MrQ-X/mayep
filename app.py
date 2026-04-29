@@ -28,13 +28,6 @@ selected_subject_key = st.selectbox(
 # 1. Lấy danh sách tên chuyên ngành đã được dịch
 translated_subjects = L["subject_list"] 
     
-    # 2. Hiển thị tên đã dịch nhưng lưu giá trị chọn là tên gốc (Key)
-selected_subject_label = st.selectbox(
-        L["subject_label"], 
-        options=list(translated_subjects.keys()), # Đây là tên gốc (dùng để xử lý logic)
-        format_func=lambda x: translated_subjects[x], # Đây là tên hiển thị (đã dịch)
-        key="subject_sel"
-    )
 
 # --- 3. TIÊU ĐỀ CHÍNH ---
 st.title(L["title"])
