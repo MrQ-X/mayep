@@ -37,7 +37,12 @@ with st.sidebar:
 
 # --- 3. TIÊU ĐỀ CHÍNH ---
 st.title(L["title"])
-st.subheader(f"📍 {selected_subject_key}")
+with st.expander(L["guide_title"], expanded=True):
+    st.write(L["guide_step1"])
+    st.write(L["guide_step2"])
+    st.write(L["guide_finish"])
+
+st.divider()
 
 # --- 4. LOGIC GỌI AI ---
 def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature, lang):
