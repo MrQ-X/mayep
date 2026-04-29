@@ -8,18 +8,18 @@ st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", l
 
 # --- 2. SIDEBAR & ĐA NGÔN NGỮ ---
 with st.sidebar:
-    # Chọn ngôn ngữ đầu tiên để các widget bên dưới cập nhật theo
     lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"])
-    L = LANGUAGES[lang_choice]
+    L = LANGUAGES[lang_choice] # Sau dòng này L đã có dữ liệu
+
+    # Bây giờ gọi dòng này mới không bị lỗi
+    translated_subjects = L["subject_list"] 
     
-    st.header(L["header_config"])
-    
-    # Kiểm tra API Key từ Secrets hoặc cho phép nhập tay
-    if "DEEPSEEK_API_KEY" in st.secrets:
-        api_key = st.secrets["DEEPSEEK_API_KEY"]
-        st.success("✅ Connected via Secrets")
-    else:
-        api_key = st.text_input(L["api_label"], type="password")
+    selected_subject_key = st.selectbox(
+        L["subject_label"], 
+        options=list(translated_subjects.keys()), 
+        format_func=lambda x: translated_subjects[x], 
+        key="subject_sel"
+    )
 
     # Widget cấu hình sử dụng Key để tránh lỗi Duplicate
     selected_subject = st.selectbox(L["subject_label"], list(SUBJECT_PROMPTS.keys()), key="subject_sel")
