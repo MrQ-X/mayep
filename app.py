@@ -22,7 +22,7 @@ with st.sidebar:
         api_key = st.text_input("DeepSeek API Key", type="password")
 
     # Chọn chuyên ngành để lấy Prompt tương ứng
-    selected_subject = st.selectbox("🎯 Chuyên ngành tài liệu", list(SUBJECTS.keys()))
+    selected_subject = st.selectbox("🎯 Chuyên ngành tài liệu", list(SUBJECT_PROMPTS.keys()))
     
     max_t = st.slider("Độ chi tiết", 1000, 4000, 3000)
     temp = st.slider("Độ sáng tạo", 0.0, 1.0, 0.2)
