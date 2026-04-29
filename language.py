@@ -2,27 +2,18 @@
 
 LANGUAGES = {
     "Tiếng Việt": {
-        "subject_list": {
-            "Vạn năng (Tổng hợp)": "Vạn năng (Tổng hợp)",
-            "AI & Data (HOT)": "AI & Data (HOT)",
-            "Kinh tế & Marketing": "Kinh tế & Marketing"
-        }
-    },
-    "English": {
-        "subject_list": {
-            "Vạn năng (Tổng hợp)": "General (Universal)",
-            "AI & Data (HOT)": "AI & Data (Trending)",
-            "Kinh tế & Marketing": "Economics & Marketing"
-        }
-    }
-}
-
-LANGUAGES = {
-    "Tiếng Việt": {
         "title": "🧠 Máy Ép Kiến Thức V6.0",
         "header_config": "⚙️ Cấu hình máy ép",
-        # ... các dòng cũ của bạn ...
+        "api_label": "Nhập DeepSeek API Key",
         "subject_label": "🎯 Chọn chuyên ngành",
+        "detail_label": "Độ chi tiết",
+        "creative_label": "Độ sáng tạo",
+        "upload_label": "Kéo thả file PDF vào đây",
+        "btn_start": "🚀 BẮT ĐẦU ÉP KIẾN THỨC",
+        "btn_download": "📥 Tải bộ phao (.md)",
+        "success_msg": "🎉 Đã ép xong toàn bộ tài liệu!",
+        "error_api": "Vui lòng cung cấp API Key ở Sidebar!",
+        "status_processing": "⚡ Đang ép Slide",
         "subject_list": {
             "Vạn năng (Bản PRO)": "Vạn năng (Bản PRO)",
             "AI & Data (HOT)": "AI & Data (HOT)",
@@ -36,8 +27,16 @@ LANGUAGES = {
     "English": {
         "title": "🧠 Knowledge Crusher V6.0",
         "header_config": "⚙️ Configuration",
-        # ... các dòng cũ của bạn ...
+        "api_label": "Enter DeepSeek API Key",
         "subject_label": "🎯 Select Subject",
+        "detail_label": "Detail Level",
+        "creative_label": "Creativity",
+        "upload_label": "Drag and drop PDF file here",
+        "btn_start": "🚀 START CRUSHING",
+        "btn_download": "📥 Download Cheat Sheet (.md)",
+        "success_msg": "🎉 Document crushed successfully!",
+        "error_api": "Please provide an API Key in the Sidebar!",
+        "status_processing": "⚡ Crushing Slide",
         "subject_list": {
             "Vạn năng (Bản PRO)": "General (PRO Version)",
             "AI & Data (HOT)": "AI & Data (Trending)",
