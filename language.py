@@ -2,6 +2,23 @@
 
 LANGUAGES = {
     "Tiếng Việt": {
+        "subject_list": {
+            "Vạn năng (Tổng hợp)": "Vạn năng (Tổng hợp)",
+            "AI & Data (HOT)": "AI & Data (HOT)",
+            "Kinh tế & Marketing": "Kinh tế & Marketing"
+        }
+    },
+    "English": {
+        "subject_list": {
+            "Vạn năng (Tổng hợp)": "General (Universal)",
+            "AI & Data (HOT)": "AI & Data (Trending)",
+            "Kinh tế & Marketing": "Economics & Marketing"
+        }
+    }
+}
+
+LANGUAGES = {
+    "Tiếng Việt": {
         "title": "🧠 Máy Ép Kiến Thức V6.0",
         "header_config": "⚙️ Cấu hình máy ép",
         "api_label": "Nhập DeepSeek API Key",
