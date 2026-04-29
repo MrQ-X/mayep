@@ -3,63 +3,52 @@ import os, fitz, requests, json, numpy as np, easyocr
 from language import LANGUAGES
 from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 
-# --- CẤU HÌNH GIAO DIỆN ---
+# --- 1. CẤU HÌNH GIAO DIỆN ---
 st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", layout="wide")
 
+# --- 2. SIDEBAR & ĐA NGÔN NGỮ ---
 with st.sidebar:
+    # Chọn ngôn ngữ đầu tiên để các widget bên dưới cập nhật theo
     lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"])
-    L = LANGUAGES[lang_choice] # Gán bộ từ điển tương ứng vào biến L
-
-# 2. Sử dụng biến L để thay thế các dòng chữ cứng
-st.title(L["title"])
-
-with st.sidebar:
-    st.header(L["header_config"])
-    api_key = st.text_input(L["api_label"], type="password")
-    # Tương tự cho các phần khác...
-    max_t = st.slider(L["detail_label"], 1000, 4000, 3000)
-
-# --- DANH SÁCH CHUYÊN NGÀNH & PROMPT CHUYÊN SÂU ---
-
-st.title("🧠 Máy Ép Kiến Thức V6.0")
-st.subheader("Bản cập nhật chuyên ngành: Ép sâu hơn, nhớ lâu hơn")
-
-# --- SIDEBAR ---
-with st.sidebar:
-    st.header("⚙️ Cấu hình máy ép")
+    L = LANGUAGES[lang_choice]
     
+    st.header(L["header_config"])
+    
+    # Kiểm tra API Key từ Secrets hoặc cho phép nhập tay
     if "DEEPSEEK_API_KEY" in st.secrets:
         api_key = st.secrets["DEEPSEEK_API_KEY"]
-        st.success("✅ Đã kết nối API bảo mật")
+        st.success("✅ Connected via Secrets")
     else:
-        api_key = st.text_input("DeepSeek API Key", type="password")
+        api_key = st.text_input(L["api_label"], type="password")
 
-    # Chọn chuyên ngành để lấy Prompt tương ứng
-    selected_subject = st.selectbox("🎯 Chuyên ngành tài liệu", list(SUBJECT_PROMPTS.keys()))
-    
-    max_t = st.slider("Độ chi tiết", 1000, 4000, 3000)
-    temp = st.slider("Độ sáng tạo", 0.0, 1.0, 0.2)
+    # Widget cấu hình sử dụng Key để tránh lỗi Duplicate
+    selected_subject = st.selectbox(L["subject_label"], list(SUBJECT_PROMPTS.keys()), key="subject_sel")
+    max_t = st.slider(L["detail_label"], 1000, 4000, 3000, key="max_t_slider")
+    temp = st.slider(L["creative_label"], 0.0, 1.0, 0.2, key="temp_slider")
 
-# --- LOGIC GỌI AI ---
-def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature):
+# --- 3. TIÊU ĐỀ CHÍNH ---
+st.title(L["title"])
+st.subheader(f"📍 {selected_subject}")
+
+# --- 4. LOGIC GỌI AI ---
+def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature, lang):
     url = "https://api.deepseek.com/chat/completions"
     
-    # --- 1. KIỂM TRA ĐẦU VÀO ---
     if not api_key:
-        return "❌ LỖI: Thiếu API Key. Hãy nhập Key ở Sidebar!", 0
+        return "❌ API Key Missing!", 0
     if not text or len(str(text).strip()) < 5:
-        return "⚠️ CẢNH BÁO: Slide này không có chữ hoặc nội dung quá ngắn để phân tích.", 0
+        return "⚠️ Empty Slide Content", 0
 
-    # --- 2. KẾT HỢP PROMPT TỪ CALCULATOR.PY ---
-    # Lấy prompt ngành, nếu không thấy thì dùng Vạn năng
     specific_instruction = SUBJECT_PROMPTS.get(subject_key, list(SUBJECT_PROMPTS.values())[0])
-    full_system_prompt = f"{SYSTEM_CORE}\n\n{specific_instruction}"
+    
+    # Ép AI trả về đúng ngôn ngữ giao diện đang chọn
+    full_system_prompt = f"{SYSTEM_CORE}\n\n{specific_instruction}\n\nIMPORTANT: Respond in {lang} language."
     
     payload = {
         "model": "deepseek-chat",
         "messages": [
             {"role": "system", "content": full_system_prompt},
-            {"role": "user", "content": f"DỮ LIỆU SLIDE {page_num}:\n{text}"}
+            {"role": "user", "content": f"DATA SLIDE {page_num}:\n{text}"}
         ],
         "temperature": temperature,
         "max_tokens": max_tokens
@@ -70,53 +59,25 @@ def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature
         "Content-Type": "application/json; charset=utf-8"
     }
     
-    # --- 3. GỬI REQUEST VÀ XỬ LÝ LỖI TẬN RĂNG ---
     try:
-        # Encode UTF-8 để tránh lỗi font khi gửi
         binary_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
         res = requests.post(url, data=binary_data, headers=headers, timeout=60)
         
-        # Kiểm tra mã trạng thái HTTP
         if res.status_code == 200:
             res_json = res.json()
-            content = res_json['choices'][0]['message']['content']
-            tokens = res_json.get('usage', {}).get('total_tokens', 0)
-            return content, tokens
-            
-        elif res.status_code == 401:
-            return "❌ LỖI 401: API Key không hợp lệ. Hãy kiểm tra lại Key DeepSeek của bạn.", 0
-        elif res.status_code == 402:
-            return "❌ LỖI 402: Tài khoản DeepSeek hết tiền (Insufficient Balance).", 0
-        elif res.status_code == 429:
-            return "⏳ LỖI 429: Rate Limit - Bạn đang gửi yêu cầu quá nhanh.", 0
-        elif res.status_code == 500:
-            return "🏗️ LỖI 500: Server DeepSeek đang quá tải hoặc bảo trì.", 0
+            return res_json['choices'][0]['message']['content'], res_json.get('usage', {}).get('total_tokens', 0)
         else:
-            return f"❓ LỖI LẠ ({res.status_code}): {res.text[:100]}...", 0
-
-    # --- 4. XỬ LÝ LỖI KỸ THUẬT NGOẠI VI ---
-    except requests.exceptions.Timeout:
-        return "🐌 LỖI: Timeout - DeepSeek phản hồi quá lâu (hơn 60s).", 0
-    except requests.exceptions.ConnectionError:
-        return "🌐 LỖI: Mạng không ổn định hoặc không thể kết nối tới server DeepSeek.", 0
+            return f"❌ Error {res.status_code}: {res.text[:100]}", 0
     except Exception as e:
-        return f"☣️ LỖI HỆ THỐNG: {str(e)}", 0
+        return f"☣️ System Error: {str(e)}", 0
 
-# --- XỬ LÝ FILE ---
+# --- 5. XỬ LÝ FILE PDF & OCR ---
 uploaded_file = st.file_uploader(L["upload_label"], type=["pdf"])
 
-if st.button(L["btn_start"]):
-    if not api_key:
-        st.error(L["error_api"])
-    # ... logic xử lý ...
-    status_text.text(f"{L['status_processing']} {i+1}/{total_pages}...")
-    
-uploaded_file = st.file_uploader("Kéo thả PDF bài giảng", type=["pdf"])
-
 if uploaded_file is not None:
-    if st.button("🚀 BẮT ĐẦU ÉP KIẾN THỨC"):
+    if st.button(L["btn_start"]):
         if not api_key:
-            st.error("Vui lòng nhập API Key!")
+            st.error(L["error_api"])
             st.stop()
 
         with open("temp.pdf", "wb") as f:
@@ -125,27 +86,32 @@ if uploaded_file is not None:
         doc = fitz.open("temp.pdf")
         total = len(doc)
         
-        # Reader OCR
+        # Reader OCR (Tải model nếu chưa có)
         reader = easyocr.Reader(['vi', 'en'], gpu=False)
         
         progress_bar = st.progress(0)
         final_summary = ""
         
-        with st.status(f" sedang ép tài liệu chuyên ngành {selected_subject}...", expanded=True) as status:
+        # Hiển thị trạng thái xử lý
+        with st.status(f"{L['status_processing']}...", expanded=True) as status:
             for i in range(total):
                 page = doc.load_page(i)
                 text = page.get_text().strip()
                 
-                if len(text) < 40: # Xử lý Slide dạng ảnh
+                # Nếu text quá ít -> Dùng OCR xử lý ảnh
+                if len(text) < 40:
                     pix = page.get_pixmap(dpi=120)
                     img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, pix.n)
                     text = " ".join(reader.readtext(img, detail=0))
                 
-                summary = summarize_page(text, i+1, api_key, selected_subject, max_t, temp)
+                summary, tokens = summarize_page(text, i+1, api_key, selected_subject, max_t, temp, lang_choice)
                 final_summary += f"## 📚 SLIDE {i+1}\n\n{summary}\n\n---\n\n"
+                
                 progress_bar.progress((i + 1) / total)
+                st.write(f"✅ Done Page {i+1}")
             
-            status.update(label="✅ Đã ép xong!", state="complete")
+            status.update(label=L["success_msg"], state="complete")
 
+        # Hiển thị kết quả & Nút tải về
         st.markdown(final_summary)
-        st.download_button("📥 Tải bản đầy đủ (.md)", final_summary, file_name="phao_chuyen_nganh.md")
+        st.download_button(L["btn_download"], final_summary, file_name=f"crushed_{selected_subject}.md")
