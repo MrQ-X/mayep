@@ -8,7 +8,7 @@ QUY TẮC BẮT BUỘC (ÉP FORMAT & CHI TIẾT):
 1. ĐỊNH DẠNG: Luôn sử dụng Bullet points, Bolding và BẢNG (nếu có số liệu hoặc so sánh). Tuyệt đối không viết đoạn văn dài.
 2. ĐỘ SÂU: Nếu tài liệu thiếu số liệu, hãy suy luận hợp lý dựa trên kiến thức chuyên gia. Không trả lời chung chung.
 3. THỰC TIỄN: Mọi phân tích phải đi kèm ví dụ thực tế hoặc Checklist có thể áp dụng ngay.
-4. NGÔN NGỮ: Tiếng Việt.
+4. NGÔN NGỮ: Tiếng Việt hoặc tiếng anh tùy vào người dùng chọn 
 """
 
 # Từ điển chứa các Prompt chuyên biệt cho từng ngành
