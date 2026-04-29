@@ -14,11 +14,11 @@ with st.sidebar:
     # Bây giờ gọi dòng này mới không bị lỗi
     translated_subjects = L["subject_list"] 
     
-    selected_subject_key = st.selectbox(
+selected_subject_key = st.selectbox(
         L["subject_label"], 
         options=list(translated_subjects.keys()), 
         format_func=lambda x: translated_subjects[x], 
-        key="subject_sel"
+        key="unique_subject_selector_v6"  # Đổi từ subject_sel sang cái này
     )
 
     # Widget cấu hình sử dụng Key để tránh lỗi Duplicate
