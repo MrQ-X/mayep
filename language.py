@@ -2,6 +2,20 @@
 
 LANGUAGES = {
     "Tiếng Việt": {
+        # ... các dòng cũ ...
+        "guide_title": "📖 Hướng dẫn sử dụng nhanh",
+        "guide_step1": "1. Nhập API Key & chọn Chuyên ngành ở Sidebar.",
+        "guide_step2": "2. Tải lên file PDF hoặc ảnh.",
+        "guide_finish": "3. Nhấn 'Bắt đầu ép' và chờ nhận kết quả!",
+    },
+    "English": {
+        # ... các dòng cũ ...
+        "guide_title": "📖 Quick Start Guide",
+        "guide_step1": "1. Enter API Key & select Subject in Sidebar.",
+        "guide_step2": "2. Upload your PDF or Images.",
+        "guide_finish": "3. Click 'Start Crushing' and wait for results!",
+    }
+    "Tiếng Việt": {
         "title": "🧠 Máy Ép Kiến Thức V1.36",
         "header_config": "⚙️ Cấu hình ",
         "api_label": "Nhập DeepSeek API Key",
