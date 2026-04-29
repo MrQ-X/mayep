@@ -6,19 +6,7 @@ from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", layout="wide")
 
 # --- DANH SÁCH CHUYÊN NGÀNH & PROMPT CHUYÊN SÂU ---
-SUBJECTS = {
-    "Vạn năng (Tổng hợp)": "Bạn là chuyên gia phân tích nội dung. Hãy trích xuất mọi thông tin quan trọng nhất, trình bày khoa học bằng Markdown.",
-    
-    "Kỹ thuật & Công nghệ": "Bạn là kỹ sư cấp cao. Tập trung tối đa vào: THÔNG SỐ KỸ THUẬT, QUY TRÌNH VẬN HÀNH, SƠ ĐỒ HỆ THỐNG và các CÔNG THỨC [ngoặc vuông]. Giải thích rõ đơn vị đo lường.",
-    
-    "Y khoa & Dược phẩm": "Bạn là bác sĩ chuyên khoa. Chú trọng: TRIỆU CHỨNG, CƠ CHẾ BỆNH SINH, CHỈ ĐỊNH/CHỐNG CHỈ ĐỊNH, LIỀU LƯỢNG và TÊN THUỐC. Đảm bảo độ chính xác thuật ngữ y khoa 100%.",
-    
-    "Luật & Chính trị": "Bạn là luật sư dày dạn kinh nghiệm. Tập trung vào: CĂN CỨ PHÁP LÝ, ĐIỀU KHOẢN, NGHĨA VỤ, TRÁCH NHIỆM PHÁP LÝ và các MỐC THỜI GIAN. Trình bày dưới dạng luận điểm chặt chẽ.",
-    
-    "Kinh tế & Tài chính": "Bạn là chuyên gia tài chính. Phân tích sâu: CHỈ SỐ KINH TẾ, BIỂU ĐỒ, CÔNG THỨC TÍNH TOÁN, CHI PHÍ/LỢI NHUẬN và CHIẾN LƯỢC KINH DOANH. Làm nổi bật các con số.",
-    
-    "Ngôn ngữ & Văn học": "Bạn là tiến sĩ ngôn ngữ. Phân tích: NGỮ CẢNH, BIỆN PHÁP NGHỆ THUẬT, Ý NGHĨA BIỂU TƯỢNG, CẤU TRÚC NGỮ PHÁP và TÁC GIẢ/TÁC PHẨM. Viết văn phong trau chuốt."
-}
+selected_subject = st.sidebar.selectbox("🎯 Chuyên ngành", list(SUBJECT_PROMPTS.keys()))
 
 st.title("🧠 Máy Ép Kiến Thức V6.0")
 st.subheader("Bản cập nhật chuyên ngành: Ép sâu hơn, nhớ lâu hơn")
@@ -43,14 +31,15 @@ with st.sidebar:
 def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature):
     url = "https://api.deepseek.com/chat/completions"
     
-    # 1. Kiểm tra đầu vào (Lỗi logic người dùng)
+    # --- 1. KIỂM TRA ĐẦU VÀO ---
     if not api_key:
         return "❌ LỖI: Thiếu API Key. Hãy nhập Key ở Sidebar!", 0
-    if not text or len(text.strip()) < 5:
+    if not text or len(str(text).strip()) < 5:
         return "⚠️ CẢNH BÁO: Slide này không có chữ hoặc nội dung quá ngắn để phân tích.", 0
 
-    # 2. Chuẩn bị Prompt từ calculator.py
-    specific_instruction = SUBJECT_PROMPTS.get(subject_key, SUBJECT_PROMPTS["Vạn năng (Tổng hợp)"])
+    # --- 2. KẾT HỢP PROMPT TỪ CALCULATOR.PY ---
+    # Lấy prompt ngành, nếu không thấy thì dùng Vạn năng
+    specific_instruction = SUBJECT_PROMPTS.get(subject_key, list(SUBJECT_PROMPTS.values())[0])
     full_system_prompt = f"{SYSTEM_CORE}\n\n{specific_instruction}"
     
     payload = {
@@ -68,12 +57,13 @@ def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature
         "Content-Type": "application/json; charset=utf-8"
     }
     
+    # --- 3. GỬI REQUEST VÀ XỬ LÝ LỖI TẬN RĂNG ---
     try:
-        # 3. Gửi yêu cầu với Timeout (Tránh treo app)
+        # Encode UTF-8 để tránh lỗi font khi gửi
         binary_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
         res = requests.post(url, data=binary_data, headers=headers, timeout=60)
         
-        # 4. Phân tích mã lỗi HTTP (Lỗi từ server DeepSeek)
+        # Kiểm tra mã trạng thái HTTP
         if res.status_code == 200:
             res_json = res.json()
             content = res_json['choices'][0]['message']['content']
@@ -81,21 +71,21 @@ def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature
             return content, tokens
             
         elif res.status_code == 401:
-            return "❌ LỖI 401: API Key không hợp lệ hoặc đã bị khóa.", 0
+            return "❌ LỖI 401: API Key không hợp lệ. Hãy kiểm tra lại Key DeepSeek của bạn.", 0
         elif res.status_code == 402:
             return "❌ LỖI 402: Tài khoản DeepSeek hết tiền (Insufficient Balance).", 0
         elif res.status_code == 429:
-            return "⏳ LỖI 429: Bạn đang gửi yêu cầu quá nhanh. Hãy chờ vài giây.", 0
+            return "⏳ LỖI 429: Rate Limit - Bạn đang gửi yêu cầu quá nhanh.", 0
         elif res.status_code == 500:
-            return "🏗️ LỖI 500: Server DeepSeek đang bảo trì. Thử lại sau.", 0
+            return "🏗️ LỖI 500: Server DeepSeek đang quá tải hoặc bảo trì.", 0
         else:
-            return f"❓ LỖI LẠ ({res.status_code}): {res.text}", 0
+            return f"❓ LỖI LẠ ({res.status_code}): {res.text[:100]}...", 0
 
-    # 5. Phân tích lỗi mạng/hệ thống
+    # --- 4. XỬ LÝ LỖI KỸ THUẬT NGOẠI VI ---
     except requests.exceptions.Timeout:
-        return "🐌 LỖI: Kết nối quá hạn (Timeout). Slide này có vẻ quá phức tạp.", 0
+        return "🐌 LỖI: Timeout - DeepSeek phản hồi quá lâu (hơn 60s).", 0
     except requests.exceptions.ConnectionError:
-        return "🌐 LỖI: Mất kết nối Internet hoặc Server bị chặn.", 0
+        return "🌐 LỖI: Mạng không ổn định hoặc không thể kết nối tới server DeepSeek.", 0
     except Exception as e:
         return f"☣️ LỖI HỆ THỐNG: {str(e)}", 0
 
