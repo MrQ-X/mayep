@@ -25,6 +25,17 @@ with st.sidebar:
     selected_subject = st.selectbox(L["subject_label"], list(SUBJECT_PROMPTS.keys()), key="subject_sel")
     max_t = st.slider(L["detail_label"], 1000, 4000, 3000, key="max_t_slider")
     temp = st.slider(L["creative_label"], 0.0, 1.0, 0.2, key="temp_slider")
+    
+# 1. Lấy danh sách tên chuyên ngành đã được dịch
+translated_subjects = L["subject_list"] 
+    
+    # 2. Hiển thị tên đã dịch nhưng lưu giá trị chọn là tên gốc (Key)
+    selected_subject_label = st.selectbox(
+        L["subject_label"], 
+        options=list(translated_subjects.keys()), # Đây là tên gốc (dùng để xử lý logic)
+        format_func=lambda x: translated_subjects[x], # Đây là tên hiển thị (đã dịch)
+        key="subject_sel"
+    )
 
 # --- 3. TIÊU ĐỀ CHÍNH ---
 st.title(L["title"])
