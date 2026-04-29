@@ -41,9 +41,63 @@ with st.sidebar:
 
 # --- LOGIC GỌI AI ---
 def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature):
-    # Hệ thống vẫn sẽ hiểu và lấy dữ liệu từ file calculator.py
+    url = "https://api.deepseek.com/chat/completions"
+    
+    # 1. Kiểm tra đầu vào (Lỗi logic người dùng)
+    if not api_key:
+        return "❌ LỖI: Thiếu API Key. Hãy nhập Key ở Sidebar!", 0
+    if not text or len(text.strip()) < 5:
+        return "⚠️ CẢNH BÁO: Slide này không có chữ hoặc nội dung quá ngắn để phân tích.", 0
+
+    # 2. Chuẩn bị Prompt từ calculator.py
     specific_instruction = SUBJECT_PROMPTS.get(subject_key, SUBJECT_PROMPTS["Vạn năng (Tổng hợp)"])
     full_system_prompt = f"{SYSTEM_CORE}\n\n{specific_instruction}"
+    
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": full_system_prompt},
+            {"role": "user", "content": f"DỮ LIỆU SLIDE {page_num}:\n{text}"}
+        ],
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    }
+    
+    headers = {
+        "Authorization": f"Bearer {api_key.strip()}", 
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    
+    try:
+        # 3. Gửi yêu cầu với Timeout (Tránh treo app)
+        binary_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+        res = requests.post(url, data=binary_data, headers=headers, timeout=60)
+        
+        # 4. Phân tích mã lỗi HTTP (Lỗi từ server DeepSeek)
+        if res.status_code == 200:
+            res_json = res.json()
+            content = res_json['choices'][0]['message']['content']
+            tokens = res_json.get('usage', {}).get('total_tokens', 0)
+            return content, tokens
+            
+        elif res.status_code == 401:
+            return "❌ LỖI 401: API Key không hợp lệ hoặc đã bị khóa.", 0
+        elif res.status_code == 402:
+            return "❌ LỖI 402: Tài khoản DeepSeek hết tiền (Insufficient Balance).", 0
+        elif res.status_code == 429:
+            return "⏳ LỖI 429: Bạn đang gửi yêu cầu quá nhanh. Hãy chờ vài giây.", 0
+        elif res.status_code == 500:
+            return "🏗️ LỖI 500: Server DeepSeek đang bảo trì. Thử lại sau.", 0
+        else:
+            return f"❓ LỖI LẠ ({res.status_code}): {res.text}", 0
+
+    # 5. Phân tích lỗi mạng/hệ thống
+    except requests.exceptions.Timeout:
+        return "🐌 LỖI: Kết nối quá hạn (Timeout). Slide này có vẻ quá phức tạp.", 0
+    except requests.exceptions.ConnectionError:
+        return "🌐 LỖI: Mất kết nối Internet hoặc Server bị chặn.", 0
+    except Exception as e:
+        return f"☣️ LỖI HỆ THỐNG: {str(e)}", 0
 
 # --- XỬ LÝ FILE ---
 uploaded_file = st.file_uploader("Kéo thả PDF bài giảng", type=["pdf"])
