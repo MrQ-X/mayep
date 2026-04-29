@@ -80,47 +80,60 @@ def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature
     except Exception as e:
         return f"☣️ System Error: {str(e)}", 0
 
-# --- 5. XỬ LÝ FILE PDF & OCR ---
-uploaded_file = st.file_uploader(L["upload_label"], type=["pdf"])
+# --- XỬ LÝ FILE (V7.0: PDF + IMAGE) ---
+uploaded_file = st.file_uploader(L["upload_label"], type=["pdf", "png", "jpg", "jpeg"])
 
 if uploaded_file is not None:
+    file_type = uploaded_file.type
+    
     if st.button(L["btn_start"]):
         if not api_key:
             st.error(L["error_api"])
             st.stop()
 
-        with open("temp.pdf", "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        
-        doc = fitz.open("temp.pdf")
-        total = len(doc)
-        
-        # Reader OCR (Tải model nếu chưa có)
-        reader = easyocr.Reader(['vi', 'en'], gpu=False)
-        
-        progress_bar = st.progress(0)
         final_summary = ""
-        
-        # Hiển thị trạng thái xử lý
-        with st.status(f"{L['status_processing']}...", expanded=True) as status:
-            for i in range(total):
-                page = doc.load_page(i)
-                text = page.get_text().strip()
-                
-                # Nếu text quá ít -> Dùng OCR xử lý ảnh
-                if len(text) < 40:
-                    pix = page.get_pixmap(dpi=120)
-                    img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, pix.n)
-                    text = " ".join(reader.readtext(img, detail=0))
-                
-                summary, tokens = summarize_page(text, i+1, api_key, selected_subject_key, max_t, temp, lang_choice)
-                final_summary += f"## 📚 SLIDE {i+1}\n\n{summary}\n\n---\n\n"
-                
-                progress_bar.progress((i + 1) / total)
-                st.write(f"✅ Done Page {i+1}")
-            
-            status.update(label=L["success_msg"], state="complete")
+        # Khởi tạo OCR Reader một lần duy nhất để tiết kiệm RAM
+        reader = easyocr.Reader(['vi', 'en'], gpu=False)
 
-        # Hiển thị kết quả & Nút tải về
+        # TRƯỜNG HỢP 1: FILE LÀ ẢNH
+        if file_type in ["image/png", "image/jpeg", "image/jpg"]:
+            with st.status("📷 Đang xử lý ảnh...", expanded=True) as status:
+                # Chuyển file upload thành mảng numpy để EasyOCR đọc
+                file_bytes = np.frombuffer(uploaded_file.read(), np.uint8)
+                import cv2
+                img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+                
+                text = " ".join(reader.readtext(img, detail=0))
+                summary, tokens = summarize_page(text, "IMAGE", api_key, selected_subject_key, max_t, temp, lang_choice)
+                
+                final_summary = f"## 🖼️ KẾT QUẢ ÉP ẢNH\n\n{summary}"
+                status.update(label="✅ Đã ép xong ảnh!", state="complete")
+
+        # TRƯỜNG HỢP 2: FILE LÀ PDF
+        else:
+            with open("temp.pdf", "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            
+            doc = fitz.open("temp.pdf")
+            total = len(doc)
+            progress_bar = st.progress(0)
+
+            with st.status(f"{L['status_processing']}...", expanded=True) as status:
+                for i in range(total):
+                    page = doc.load_page(i)
+                    text = page.get_text().strip()
+                    
+                    if len(text) < 40: # Nếu trang PDF là ảnh hoặc ít chữ
+                        pix = page.get_pixmap(dpi=120)
+                        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, pix.n)
+                        text = " ".join(reader.readtext(img, detail=0))
+                    
+                    summary, tokens = summarize_page(text, i+1, api_key, selected_subject_key, max_t, temp, lang_choice)
+                    final_summary += f"## 📚 SLIDE {i+1}\n\n{summary}\n\n---\n\n"
+                    progress_bar.progress((i + 1) / total)
+                
+                status.update(label=L["success_msg"], state="complete")
+
+        # Hiển thị kết quả cuối cùng
         st.markdown(final_summary)
-        st.download_button(L["btn_download"], final_summary, file_name=f"crushed_{selected_subject}.md")
+        st.download_button(L["btn_download"], final_summary, file_name=f"crushed_content.md")
