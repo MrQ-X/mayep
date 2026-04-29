@@ -6,7 +6,6 @@ from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 st.set_page_config(page_title="Máy Ép Kiến Thức V6.0", page_icon="🧠", layout="wide")
 
 # --- DANH SÁCH CHUYÊN NGÀNH & PROMPT CHUYÊN SÂU ---
-selected_subject = st.sidebar.selectbox("🎯 Chuyên ngành", list(SUBJECT_PROMPTS.keys()))
 
 st.title("🧠 Máy Ép Kiến Thức V6.0")
 st.subheader("Bản cập nhật chuyên ngành: Ép sâu hơn, nhớ lâu hơn")
