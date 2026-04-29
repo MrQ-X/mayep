@@ -37,7 +37,7 @@ with st.sidebar:
 
 # --- 3. TIÊU ĐỀ CHÍNH ---
 st.title(L["title"])
-st.subheader(f"📍 {selected_subject}")
+st.subheader(f"📍 {selected_subject_key}")
 
 # --- 4. LOGIC GỌI AI ---
 def summarize_page(text, page_num, api_key, subject_key, max_tokens, temperature, lang):
@@ -113,7 +113,7 @@ if uploaded_file is not None:
                     img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, pix.n)
                     text = " ".join(reader.readtext(img, detail=0))
                 
-                summary, tokens = summarize_page(text, i+1, api_key, selected_subject, max_t, temp, lang_choice)
+                summary, tokens = summarize_page(text, i+1, api_key, selected_subject_key, max_t, temp, lang_choice)
                 final_summary += f"## 📚 SLIDE {i+1}\n\n{summary}\n\n---\n\n"
                 
                 progress_bar.progress((i + 1) / total)
