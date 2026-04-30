@@ -10,7 +10,7 @@ st.set_page_config(page_title="Máy Ép Kiến Thức V7.0", page_icon="🧠", l
 
 # --- 2. SIDEBAR (Nơi thiết lập cấu hình) ---
 with st.sidebar:
-    # Bước 1: Chọn ngôn ngữ TRƯỚC để lấy biến L
+    # Bước 1: Chọn ngôn ngữ
     lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"], key="lang_picker")
     L = LANGUAGES[lang_choice] 
     
@@ -23,7 +23,7 @@ with st.sidebar:
     else:
         api_key = st.text_input(L["api_label"], type="password", key="api_input_key")
 
-    # Bước 2.5: Chọn chuyên ngành
+    # Bước 3: Chọn chuyên ngành
     translated_subjects = L["subject_list"]
     selected_subject_key = st.selectbox(
         L["subject_label"], 
@@ -31,9 +31,13 @@ with st.sidebar:
         format_func=lambda x: translated_subjects[x], 
         key="subject_selector_unique"
     )
+    
+    # Bước 4: Các Slider
+    max_t = st.slider(L["detail_label"], 1000, 4000, 3000, key="max_t_slider")
+    temp = st.slider(L["creative_label"], 0.0, 1.0, 0.2, key="temp_slider")
 
 # --- 3. NỘI DUNG CHÍNH (Hiển thị ở giữa màn hình) ---
-st.title(L["title"]) # Tiêu đề chính
+st.title(L["title"]) 
 
 # Hiển thị bảng thông tin sản phẩm
 df_info = pd.DataFrame(L["product_info"], columns=[L["table_feature"], L["table_detail"]])
@@ -45,20 +49,8 @@ with st.expander(L["guide_title"], expanded=True):
 
 st.divider()
 
-    # 3. Chọn chuyên ngành (Đã dịch)
-    translated_subjects = L["subject_list"]
-    selected_subject_key = st.selectbox(
-        L["subject_label"], 
-        options=list(translated_subjects.keys()), 
-        format_func=lambda x: translated_subjects[x], 
-        key="subject_selector_unique"
-    )
-    
-    # 4. Các Slider (Đảm bảo các dòng này thẳng hàng với dòng translated_subjects ở trên)
-    max_t = st.slider(L["detail_label"], 1000, 4000, 3000, key="max_t_slider")
-    temp = st.slider(L["creative_label"], 0.0, 1.0, 0.2, key="temp_slider")
-    
-
+# --- 4. TIÊU ĐỀ PHẦN KẾT QUẢ (Ví dụ) ---
+st.subheader(f"📍 {translated_subjects[selected_subject_key]}")
 # --- 3. TIÊU ĐỀ CHÍNH ---
 st.title(L["title"])
 with st.expander(L["guide_title"], expanded=True):
