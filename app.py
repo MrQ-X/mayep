@@ -6,18 +6,36 @@ from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 
 
 # --- 1. CẤU HÌNH GIAO DIỆN ---
-st.set_page_config(page_title="Máy Ép Kiến Thức V1.36", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Máy Ép Kiến Thức V7.0", page_icon="🧠", layout="wide")
 
-
-# --- 2. SIDEBAR & ĐA NGÔN NGỮ ---
+# --- 2. SIDEBAR (Nơi thiết lập cấu hình) ---
 with st.sidebar:
-    # 1. Chọn ngôn ngữ
+    # Bước 1: Chọn ngôn ngữ TRƯỚC để lấy biến L
     lang_choice = st.selectbox("🌐 Ngôn ngữ / Language", ["Tiếng Việt", "English"], key="lang_picker")
-    L = LANGUAGES[lang_choice]
+    L = LANGUAGES[lang_choice] 
     
     st.header(L["header_config"])
-
     
+    # Bước 2: Nhập API Key
+    if "DEEPSEEK_API_KEY" in st.secrets:
+        api_key = st.secrets["DEEPSEEK_API_KEY"]
+        st.success("✅ Connected")
+    else:
+        api_key = st.text_input(L["api_label"], type="password", key="api_input_key")
+
+    # Bước 2.5: Chọn chuyên ngành
+    translated_subjects = L["subject_list"]
+    selected_subject_key = st.selectbox(
+        L["subject_label"], 
+        options=list(translated_subjects.keys()), 
+        format_func=lambda x: translated_subjects[x], 
+        key="subject_selector_unique"
+    )
+
+# --- 3. NỘI DUNG CHÍNH (Hiển thị ở giữa màn hình) ---
+st.title(L["title"]) # Tiêu đề chính
+
+# Hiển thị bảng thông tin sản phẩm
 df_info = pd.DataFrame(L["product_info"], columns=[L["table_feature"], L["table_detail"]])
 st.table(df_info)
 
@@ -26,13 +44,6 @@ with st.expander(L["guide_title"], expanded=True):
     st.info(f"{L['guide_step1']}\n\n{L['guide_step2']}\n\n{L['guide_finish']}")
 
 st.divider()
-    
-    # 2. Nhập API Key
-    if "DEEPSEEK_API_KEY" in st.secrets:
-        api_key = st.secrets["DEEPSEEK_API_KEY"]
-        st.success("✅ Connected via Secrets")
-    else:
-        api_key = st.text_input(L["api_label"], type="password", key="api_input_key")
 
     # 3. Chọn chuyên ngành (Đã dịch)
     translated_subjects = L["subject_list"]
