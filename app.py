@@ -8,14 +8,6 @@ from calculator import SYSTEM_CORE, SUBJECT_PROMPTS
 # --- 1. CẤU HÌNH GIAO DIỆN ---
 st.set_page_config(page_title="Máy Ép Kiến Thức V1.36", page_icon="🧠", layout="wide")
 
-df_info = pd.DataFrame(L["product_info"], columns=[L["table_feature"], L["table_detail"]])
-st.table(df_info)
-
-# Hiển thị hướng dẫn sử dụng nhanh
-with st.expander(L["guide_title"], expanded=True):
-    st.info(f"{L['guide_step1']}\n\n{L['guide_step2']}\n\n{L['guide_finish']}")
-
-st.divider()
 
 # --- 2. SIDEBAR & ĐA NGÔN NGỮ ---
 with st.sidebar:
@@ -24,6 +16,16 @@ with st.sidebar:
     L = LANGUAGES[lang_choice]
     
     st.header(L["header_config"])
+
+    
+df_info = pd.DataFrame(L["product_info"], columns=[L["table_feature"], L["table_detail"]])
+st.table(df_info)
+
+# Hiển thị hướng dẫn sử dụng nhanh
+with st.expander(L["guide_title"], expanded=True):
+    st.info(f"{L['guide_step1']}\n\n{L['guide_step2']}\n\n{L['guide_finish']}")
+
+st.divider()
     
     # 2. Nhập API Key
     if "DEEPSEEK_API_KEY" in st.secrets:
