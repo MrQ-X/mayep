@@ -1,0 +1,3 @@
+# Bot chỉ dùng thư viện chuẩn của Python (stdlib)
+# Không cần cài thêm gì cả.
+# File này để các nền tảng cloud nhận diện là Python project.
