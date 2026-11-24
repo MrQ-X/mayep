@@ -1,7 +1,0 @@
-streamlit
-pymupdf
-requests
-easyocr
-numpy
-tqdm
-opencv-python-headless
